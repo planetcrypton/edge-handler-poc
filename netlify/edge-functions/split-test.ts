@@ -2,8 +2,6 @@ import type { Context } from "https://edge.netlify.com";
 
 export default async (request: Request, context: Context) => {
   //const buckets = JSON.parse(Deno.env.get("AB_TEST_LIST") || "null");
-  new URL(request.url)
-  context.log(request.url)
 
   const buckets = [{ url: "https://edge-handler-poc.netlify.app", weight: 0.5 }, { url: "https://deploy-preview-1--edge-handler-poc.netlify.app", weight: 0.5 }]
   //If environment variable not set return standard page
@@ -58,8 +56,8 @@ export default async (request: Request, context: Context) => {
   }
 
   //Generate full proxy url
-  const url = `${bucket}${requestUrl.pathname}`;
-  context.log("BUCKET URL: ", url);
+  const url = `https://deploy-preview-1--edge-handler-poc.netlify.app`;
+
   //Set cookie if new bucket has been set
   if (!hasBucket) {
     context.cookies.delete(cookieName);

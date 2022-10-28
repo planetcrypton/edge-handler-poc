@@ -1,5 +1,9 @@
-export default async (request: any, context: any) => {
+import type { Context } from "https://edge.netlify.com";
+
+export default async (request: Request, context: Context) => {
   //const buckets = JSON.parse(Deno.env.get("AB_TEST_LIST") || "null");
+  new URL(request.url)
+  context.log(request.url)
 
   const buckets = [{ url: "https://edge-handler-poc.netlify.app", weight: 0.5 }, { url: "https://deploy-preview-1--edge-handler-poc.netlify.app", weight: 0.5 }]
   //If environment variable not set return standard page
@@ -9,7 +13,7 @@ export default async (request: any, context: any) => {
 
   //Ensure weighting adds up to 1
   const totalWeighting = buckets.reduce(
-    (tot: any, bucket: any) => tot + bucket.weighting,
+    (tot: any, bucket: any) => tot + bucket.weight,
     0
   );
   const weightingMultiplier = totalWeighting === 1 ? 1 : 1 / totalWeighting;
@@ -44,18 +48,18 @@ export default async (request: any, context: any) => {
     buckets.forEach((b: any) => {
       if (
         totalWeighting <= randomNumber &&
-        randomNumber <= totalWeighting + b.weighting * weightingMultiplier
+        randomNumber <= totalWeighting + b.weight * weightingMultiplier
       ) {
         bucket = b.url;
         hasBucket = false;
       }
-      totalWeighting += b.weighting * weightingMultiplier;
+      totalWeighting += b.weight * weightingMultiplier;
     });
   }
 
   //Generate full proxy url
   const url = `${bucket}${requestUrl.pathname}`;
-
+  context.log("BUCKET URL: ", url);
   //Set cookie if new bucket has been set
   if (!hasBucket) {
     context.cookies.delete(cookieName);

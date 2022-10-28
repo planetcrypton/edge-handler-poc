@@ -1,6 +1,5 @@
-import type { Context } from "https://edge.netlify.com";
-
-export default async (request: Request, context: Context) => {
+export default async (request: Request, context: any) => {
+  /*
   //const buckets = JSON.parse(Deno.env.get("AB_TEST_LIST") || "null");
 
   const buckets = [{ url: "https://edge-handler-poc.netlify.app", weight: 0.5 }, { url: "https://deploy-preview-1--edge-handler-poc.netlify.app", weight: 0.5 }]
@@ -55,15 +54,15 @@ export default async (request: Request, context: Context) => {
     });
   }
 
-  //Generate full proxy url
-  const url = `https://deploy-preview-1--edge-handler-poc.netlify.app`;
 
   //Set cookie if new bucket has been set
   if (!hasBucket) {
     context.cookies.delete(cookieName);
     context.cookies.set({ name: cookieName, value: bucket });
-  }
+  }*/
 
+  //Generate full proxy url
+  const url = `https://deploy-preview-1--edge-handler-poc.netlify.app`;
   const proxyResponse = await fetch(url);
   return new Response(proxyResponse.body, proxyResponse);
 };

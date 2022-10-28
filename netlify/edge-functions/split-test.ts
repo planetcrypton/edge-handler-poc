@@ -1,4 +1,5 @@
 export default async (request: any, context: any) => {
+
   console.log(Deno.env.get("AB_TEST_LIST"));
   console.log(request);
   const buckets = JSON.parse(Deno.env.get("AB_TEST_LIST") || "null");

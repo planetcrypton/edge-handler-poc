@@ -7,7 +7,7 @@
         alt="vue"
         class="logo"
       />
-      <h1>MASTER BRANCH</h1>
+      <h1>SPLIT-TEST BRANCH</h1>
     </div>
   </div>
 </template>

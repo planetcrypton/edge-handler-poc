@@ -11,13 +11,8 @@ export default async (request: Request, context: Context) => {
 
   const requestUrl = new URL(request.url);
 
-  context.log("### request: ", request);
-  context.log("### context: ", context);
-
-  // if the requests comes from anything but the main sites url we do nothing.
-  if (requestUrl.origin.includes(buckets[0].url)) {
-    return context.next();
-  }
+  //context.log("### request: ", request);
+  //context.log("### context: ", context);
 
   if (requestUrl.origin.includes("deploy-preview") || requestUrl.origin.includes("master--")) {
     return context.next()
@@ -31,7 +26,7 @@ export default async (request: Request, context: Context) => {
   const weightingMultiplier = totalWeighting === 1 ? 1 : 1 / totalWeighting;
 
   //Set the cookie name of the bucket
-  const cookieName = "netlify-split-test5";
+  const cookieName = "netlify-split-test6";
 
   // Get the bucket from the cookie
   let bucket = context.cookies.get(cookieName);
@@ -62,6 +57,11 @@ export default async (request: Request, context: Context) => {
     });
   }
 
+  // if the requests comes from anything but the main sites url we do nothing.
+  if (bucket === buckets[0].url) {
+    return context.next();
+  }
+
   //Generate full proxy url
   const url = `${bucket}${requestUrl.pathname}`;
   context.log("Proxy-URL:", { url });
@@ -69,7 +69,7 @@ export default async (request: Request, context: Context) => {
   if (!hasBucket) {
     context.cookies.delete(cookieName);
     context.cookies.set({ name: cookieName, value: bucket, maxAge: 120 });
-  } 
+  }
 
   const proxyResponse = await fetch(url);
   return new Response(proxyResponse.body, proxyResponse);

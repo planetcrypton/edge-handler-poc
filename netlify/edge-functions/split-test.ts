@@ -1,6 +1,6 @@
 export default async (request: Request, context: any) => {
   //const buckets = JSON.parse(Deno.env.get("AB_TEST_LIST") || "null");
-  /*
+
   const buckets = [{ url: "https://edge-handler-poc.netlify.app", weight: 0.5 }, { url: "https://deploy-preview-1--edge-handler-poc.netlify.app", weight: 0.5 }]
   //If environment variable not set return standard page
   if (!buckets || !request) {
@@ -19,19 +19,16 @@ export default async (request: Request, context: any) => {
 
   const requestUrl = new URL(request.url);
 
-  //Only required for next
-  if (requestUrl.pathname.startsWith("/_next/images")) {
-    return context.next();
-  }
-
   // Get the bucket from the cookie
   let bucket = context.cookies.get(cookieName);
   let hasBucket = !!bucket;
 
+  context.log({ bucket, hasBucket });
+
   //Check cookie is active cookie
   if (bucket) {
     const isActiveCookie = buckets.find((b: any) => b.url === bucket);
-    console.log("Here", isActiveCookie);
+
     if (!isActiveCookie) {
       hasBucket = false;
     }
@@ -53,17 +50,17 @@ export default async (request: Request, context: any) => {
     });
   }
 
+  context.log("after: ", { bucket })
+
   //Generate full proxy url
   const url = `${bucket}${requestUrl.pathname}`;
-
+  context.log({ url });
   //Set cookie if new bucket has been set
   if (!hasBucket) {
     context.cookies.delete(cookieName);
     context.cookies.set({ name: cookieName, value: bucket });
-  } */
-  //Generate full proxy url
-  const requestUrl = new URL(request.url);
-  const url = `https://deploy-preview-1--edge-handler-poc.netlify.app${requestUrl.pathname}`;
+  } 
+
   const proxyResponse = await fetch(url);
   return new Response(proxyResponse.body, proxyResponse);
 };

@@ -7,6 +7,13 @@ export default async (request: Request, context: any) => {
     return context.next();
   }
 
+  const requestUrl = new URL(request.url);
+
+  console.log("INC URLS: ", requestUrl.origin, buckets[0].url)
+  if (requestUrl.origin === buckets[0].url) {
+    return context.next();
+  }
+
   //Ensure weighting adds up to 1
   const totalWeighting = buckets.reduce(
     (tot: any, bucket: any) => tot + bucket.weight,
@@ -16,8 +23,6 @@ export default async (request: Request, context: any) => {
 
   //Set the cookie name of the bucket
   const cookieName = "netlify-split-test";
-
-  const requestUrl = new URL(request.url);
 
   // Get the bucket from the cookie
   let bucket = context.cookies.get(cookieName);
@@ -54,7 +59,7 @@ export default async (request: Request, context: any) => {
 
   //Generate full proxy url
   const url = `${bucket}${requestUrl.pathname}`;
-  context.log({ url });
+  context.log("Proxy-URL:", { url });
   //Set cookie if new bucket has been set
   if (!hasBucket) {
     context.cookies.delete(cookieName);

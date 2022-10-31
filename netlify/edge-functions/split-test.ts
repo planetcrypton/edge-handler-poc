@@ -1,7 +1,9 @@
-export default async (request: Request, context: any) => {
+import { Context } from "https://edge.netlify.com";
+
+export default async (request: Request, context: Context) => {
   //const buckets = JSON.parse(Deno.env.get("AB_TEST_LIST") || "null");
 
-  const buckets = [{ url: "https://edge-handler-poc.netlify.app", weight: 0.5 }, { url: "https://deploy-preview-4--edge-handler-poc.netlify.app", weight: 0.5 }]
+  const buckets = [{ url: "https://edge-handler-poc.netlify.app", weight: 0.1 }, { url: "https://deploy-preview-4--edge-handler-poc.netlify.app", weight: 0.9 }]
   //If environment variable not set return standard pages
   if (!buckets || !request) {
     return context.next();
@@ -9,7 +11,9 @@ export default async (request: Request, context: any) => {
 
   const requestUrl = new URL(request.url);
 
-  context.log("contextual: ", { request, context })
+  context.log("### request: ", request);
+  context.log("### context: ", context);
+
   // if the requests comes from anything but the main sites url we do nothing.
   if (requestUrl.origin.includes(buckets[0].url)) {
     return context.next();
@@ -27,13 +31,11 @@ export default async (request: Request, context: any) => {
   const weightingMultiplier = totalWeighting === 1 ? 1 : 1 / totalWeighting;
 
   //Set the cookie name of the bucket
-  const cookieName = "netlify-split-test4";
+  const cookieName = "netlify-split-test5";
 
   // Get the bucket from the cookie
   let bucket = context.cookies.get(cookieName);
   let hasBucket = !!bucket;
-
-  context.log({ bucket, hasBucket });
 
   //Check cookie is active cookie
   if (bucket) {
@@ -60,15 +62,13 @@ export default async (request: Request, context: any) => {
     });
   }
 
-  context.log("after: ", { bucket })
-
   //Generate full proxy url
   const url = `${bucket}${requestUrl.pathname}`;
   context.log("Proxy-URL:", { url });
   //Set cookie if new bucket has been set
   if (!hasBucket) {
     context.cookies.delete(cookieName);
-    context.cookies.set({ name: cookieName, value: bucket });
+    context.cookies.set({ name: cookieName, value: bucket, maxAge: 120 });
   } 
 
   const proxyResponse = await fetch(url);

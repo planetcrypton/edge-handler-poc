@@ -12,7 +12,7 @@ export default async (request: Request, context: any) => {
   console.log("INC URLS: ", requestUrl.origin, buckets[0].url);
 
   // if the requests comes from anything but the main sites url we do nothing.
-  if (requestUrl.origin !== buckets[0].url) {
+  if (requestUrl.origin.includes(buckets[0].url)) {
     return context.next();
   }
 
@@ -28,11 +28,11 @@ export default async (request: Request, context: any) => {
   const weightingMultiplier = totalWeighting === 1 ? 1 : 1 / totalWeighting;
 
   //Set the cookie name of the bucket
-  const cookieName = "netlify-split-test";
+  const cookieName = "netlify-split-test3";
 
   // Get the bucket from the cookie
   let bucket = context.cookies.get(cookieName);
-  let hasBucket = false;
+  let hasBucket = !!bucket;
 
   context.log({ bucket, hasBucket });
 

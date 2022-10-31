@@ -32,7 +32,7 @@ export default async (request: Request, context: any) => {
 
   // Get the bucket from the cookie
   let bucket = context.cookies.get(cookieName);
-  let hasBucket = !!bucket;
+  let hasBucket = false;
 
   context.log({ bucket, hasBucket });
 

@@ -4,3 +4,6 @@ node_modules
 
 # poi dist
 dist
+
+# Local Netlify folder
+.netlify

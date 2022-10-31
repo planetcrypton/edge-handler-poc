@@ -12,11 +12,11 @@ export default async (request: Request, context: any) => {
   console.log("INC URLS: ", requestUrl.origin, buckets[0].url);
 
   // if the requests comes from anything but the main sites url we do nothing.
-  if (requestUrl.origin !== buckets[0].url || requestUrl.origin !== "https://master--edge-handler-poc.netlify.app") {
+  if (requestUrl.origin !== buckets[0].url) {
     return context.next();
   }
 
-  if (requestUrl.origin.includes("deploy-preview")) {
+  if (requestUrl.origin.includes("deploy-preview") || requestUrl.origin.includes("master--")) {
     return context.next()
   }
 

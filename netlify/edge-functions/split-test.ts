@@ -9,11 +9,15 @@ export default async (request: Request, context: any) => {
 
   const requestUrl = new URL(request.url);
 
-  console.log("INC URLS: ", requestUrl.origin, buckets[0].url)
+  console.log("INC URLS: ", requestUrl.origin, buckets[0].url);
 
   // if the requests comes from anything but the main sites url we do nothing.
-  if (requestUrl.origin !== buckets[0].url) {
+  if (requestUrl.origin !== buckets[0].url || requestUrl.origin !== "https://master--edge-handler-poc.netlify.app") {
     return context.next();
+  }
+
+  if (requestUrl.origin.includes("deploy-preview")) {
+    return context.next()
   }
 
   //Ensure weighting adds up to 1
@@ -68,6 +72,6 @@ export default async (request: Request, context: any) => {
     context.cookies.set({ name: cookieName, value: bucket });
   } 
 
-  const proxyResponse = await fetch("url");
+  const proxyResponse = await fetch(url);
   return new Response(proxyResponse.body, proxyResponse);
 };

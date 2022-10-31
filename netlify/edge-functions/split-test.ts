@@ -2,7 +2,7 @@ export default async (request: Request, context: any) => {
   //const buckets = JSON.parse(Deno.env.get("AB_TEST_LIST") || "null");
 
   const buckets = [{ url: "https://edge-handler-poc.netlify.app", weight: 0.5 }, { url: "https://deploy-preview-4--edge-handler-poc.netlify.app", weight: 0.5 }]
-  //If environment variable not set return standard page
+  //If environment variable not set return standard pages
   if (!buckets || !request) {
     return context.next();
   }

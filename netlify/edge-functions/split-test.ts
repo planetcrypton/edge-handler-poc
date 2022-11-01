@@ -3,7 +3,7 @@ import { Context } from "https://edge.netlify.com";
 export default async (request: Request, context: Context) => {
   //const buckets = JSON.parse(Deno.env.get("AB_TEST_LIST") || "null");
 
-  const buckets = [{ url: "https://edge-handler-poc.netlify.app", weight: 0.1 }, { url: "https://deploy-preview-4--edge-handler-poc.netlify.app", weight: 0.9 }]
+  const buckets = [{ url: "https://edge-handler-poc.netlify.app", weight: 0.5 }, { url: "https://deploy-preview-4--edge-handler-poc.netlify.app", weight: 0.5 }]
   //If environment variable not set return standard pages
   if (!buckets || !request) {
     return context.next();
@@ -11,22 +11,19 @@ export default async (request: Request, context: Context) => {
 
   const requestUrl = new URL(request.url);
 
-  //context.log("### request: ", request);
-  //context.log("### context: ", context);
-
   if (requestUrl.origin.includes("deploy-preview") || requestUrl.origin.includes("master--")) {
     return context.next()
   }
 
   //Ensure weighting adds up to 1
   const totalWeighting = buckets.reduce(
-    (tot: any, bucket: any) => tot + bucket.weight,
+    (tot, bucket) => tot + bucket.weight,
     0
   );
   const weightingMultiplier = totalWeighting === 1 ? 1 : 1 / totalWeighting;
 
   //Set the cookie name of the bucket
-  const cookieName = "netlify-split-test6";
+  const cookieName = "netlify-split-test7";
 
   // Get the bucket from the cookie
   let bucket = context.cookies.get(cookieName);
@@ -34,7 +31,7 @@ export default async (request: Request, context: Context) => {
 
   //Check cookie is active cookie
   if (bucket) {
-    const isActiveCookie = buckets.find((b: any) => b.url === bucket);
+    const isActiveCookie = buckets.find((b) => b.url === bucket);
 
     if (!isActiveCookie) {
       hasBucket = false;
@@ -45,7 +42,7 @@ export default async (request: Request, context: Context) => {
   if (!hasBucket) {
     const randomNumber = Math.random();
     let totalWeighting = 0;
-    buckets.forEach((b: any) => {
+    buckets.forEach(b => {
       if (
         totalWeighting <= randomNumber &&
         randomNumber <= totalWeighting + b.weight * weightingMultiplier
@@ -57,19 +54,20 @@ export default async (request: Request, context: Context) => {
     });
   }
 
-  // if the requests comes from anything but the main sites url we do nothing.
-  if (bucket === buckets[0].url) {
-    return context.next();
-  }
-
-  //Generate full proxy url
-  const url = `${bucket}${requestUrl.pathname}`;
-  context.log("Proxy-URL:", { url });
   //Set cookie if new bucket has been set
   if (!hasBucket) {
     context.cookies.delete(cookieName);
-    context.cookies.set({ name: cookieName, value: bucket, maxAge: 120 });
+    context.cookies.set({ name: cookieName, value: bucket });
   }
+
+  // if the assigned bucket is master, dont do proxy request.
+  if (bucket == buckets[0].url) {
+    return context.next();
+  }
+
+  //Generate full proxy url getting base url from bucket and path from incoming request.
+  // Will generate an url like https://test-split-test--bilka.netlify.app/[pathname]
+  const url = `${bucket}${requestUrl.pathname}`;
 
   const proxyResponse = await fetch(url);
   return new Response(proxyResponse.body, proxyResponse);

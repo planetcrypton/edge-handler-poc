@@ -1,9 +1,11 @@
 import { Context } from "https://edge.netlify.com";
+import { Md5 } from "https://deno.land/std@0.153.0/hash/md5.ts";
 
 export default async (request: Request, context: Context) => {
   //const buckets = JSON.parse(Deno.env.get("AB_TEST_LIST") || "null");
 
   const buckets = [{ url: "https://edge-handler-poc.netlify.app", weight: 0.5 }, { url: "https://deploy-preview-4--edge-handler-poc.netlify.app", weight: 0.5 }]
+
   //If environment variable not set return standard pages
   if (!buckets || !request) {
     return context.next();
@@ -22,8 +24,12 @@ export default async (request: Request, context: Context) => {
   );
   const weightingMultiplier = totalWeighting === 1 ? 1 : 1 / totalWeighting;
 
-  //Set the cookie name of the bucket
-  const cookieName = "netlify-split-test7";
+  // Generate md5 hash from bucket urls
+  const branchNames = buckets.map(b => b.url).join();
+  const hash = new Md5();
+  hash.update(branchNames)
+
+  const cookieName = hash.toString();
 
   // Get the bucket from the cookie
   let bucket = context.cookies.get(cookieName);
@@ -54,10 +60,14 @@ export default async (request: Request, context: Context) => {
     });
   }
 
+
   //Set cookie if new bucket has been set
   if (!hasBucket) {
+    // Set cookie to expire after 90 days.
+    const maxCookieAge = 7776000;
+
     context.cookies.delete(cookieName);
-    context.cookies.set({ name: cookieName, value: bucket });
+    context.cookies.set({ name: cookieName, value: bucket, maxAge: maxCookieAge });
   }
 
   // if the assigned bucket is master, dont do proxy request.

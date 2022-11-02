@@ -1,9 +1,14 @@
 import { Context } from "https://edge.netlify.com";
 import { Md5 } from "https://deno.land/std@0.153.0/hash/md5.ts";
 
+interface Bucket {
+  url: string;
+  weight: number;
+}
+
 export default async (request: Request, context: Context) => {
-  const buckets = JSON.parse(Deno.env.get("AB_TEST_LIST") || "null");
-  //context.log(bucketsv2);
+  const buckets: Bucket[] = JSON.parse(Deno.env.get("AB_TEST_LIST") || "null");
+
   // const buckets = [{ url: "https://edge-handler-poc.netlify.app", weight: 0.5 }, { url: "https://deploy-preview-4--edge-handler-poc.netlify.app", weight: 0.5 }]
 
   //If environment variable not set return standard pages
@@ -19,7 +24,7 @@ export default async (request: Request, context: Context) => {
 
   //Ensure weighting adds up to 1
   const totalWeighting = buckets.reduce(
-    (tot: any, bucket: any) => tot + bucket.weight,
+    (tot, bucket) => tot + bucket.weight,
     0
   );
   const weightingMultiplier = totalWeighting === 1 ? 1 : 1 / totalWeighting;
@@ -27,7 +32,7 @@ export default async (request: Request, context: Context) => {
   // Generate md5 hash from bucket urls
   const branchNames = buckets.map(b => b.url).join();
   const hash = new Md5();
-  hash.update(branchNames)
+  hash.update(branchNames);
 
   const cookieName = hash.toString();
 
@@ -48,7 +53,7 @@ export default async (request: Request, context: Context) => {
   if (!hasBucket) {
     const randomNumber = Math.random();
     let totalWeighting = 0;
-    buckets.forEach((b: any) => {
+    buckets.forEach((b) => {
       if (
         totalWeighting <= randomNumber &&
         randomNumber <= totalWeighting + b.weight * weightingMultiplier
